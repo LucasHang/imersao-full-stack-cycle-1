@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	mock_broker "github.com/lucashang/imersao5-gateway/src/adapter/broker/mock"
 	"github.com/lucashang/imersao5-gateway/src/domain/entity"
 	mock_repository "github.com/lucashang/imersao5-gateway/src/domain/repository/mock"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +36,10 @@ func TestProcessTransaction_ExecuteInvalidCreditCard(t *testing.T) {
 		Insert(input.ID, input.AccountID, input.Amount, expectedOutput.Status, expectedOutput.ErrorMessage).
 		Return(nil)
 
-	usecase := NewProcessTransaction(repositoryMock)
+	producerMock := mock_broker.NewMockProducerInterface(ctrl)
+	producerMock.EXPECT().Publish(expectedOutput, []byte(input.ID), "transactions_result")
+
+	usecase := NewProcessTransaction(repositoryMock, producerMock, "transactions_result")
 
 	output, err := usecase.Execute(input)
 
@@ -69,7 +73,10 @@ func TestProcessTransaction_ExecuteRejected(t *testing.T) {
 		Insert(input.ID, input.AccountID, input.Amount, expectedOutput.Status, expectedOutput.ErrorMessage).
 		Return(nil)
 
-	usecase := NewProcessTransaction(repositoryMock)
+	producerMock := mock_broker.NewMockProducerInterface(ctrl)
+	producerMock.EXPECT().Publish(expectedOutput, []byte(input.ID), "transactions_result")
+
+	usecase := NewProcessTransaction(repositoryMock, producerMock, "transactions_result")
 
 	output, err := usecase.Execute(input)
 
@@ -103,7 +110,10 @@ func TestProcessTransaction_ExecuteApproved(t *testing.T) {
 		Insert(input.ID, input.AccountID, input.Amount, expectedOutput.Status, expectedOutput.ErrorMessage).
 		Return(nil)
 
-	usecase := NewProcessTransaction(repositoryMock)
+	producerMock := mock_broker.NewMockProducerInterface(ctrl)
+	producerMock.EXPECT().Publish(expectedOutput, []byte(input.ID), "transactions_result")
+
+	usecase := NewProcessTransaction(repositoryMock, producerMock, "transactions_result")
 
 	output, err := usecase.Execute(input)
 
