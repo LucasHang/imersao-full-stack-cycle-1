@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Order } from './orders/entities/order.entity';
 import { OrdersModule } from './orders/orders.module';
+import { AccountsModule } from './accounts/accounts.module';
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import { OrdersModule } from './orders/orders.module';
             autoLoadModels: true,
             models: [Order],
         }),
+        AccountsModule,
     ],
     controllers: [AppController],
     providers: [AppService],
