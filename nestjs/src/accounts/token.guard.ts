@@ -7,6 +7,10 @@ export class TokenGuard implements CanActivate {
     constructor(private accountStorage: AccountStorageService) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        if (context.getType() !== 'http') {
+            return true;
+        }
+
         const request = context.switchToHttp().getRequest();
         const token = request.headers?.['x-token'] as string;
 

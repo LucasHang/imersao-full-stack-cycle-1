@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { Producer } from '@nestjs/microservices/external/kafka.interface';
 import { InjectModel } from '@nestjs/sequelize';
 import { EmptyResultError } from 'sequelize';
 import { AccountStorageService } from 'src/accounts/account-storage/account-storage.service';
@@ -12,13 +13,22 @@ export class OrdersService {
         @InjectModel(Order)
         private orderModel: typeof Order,
         private accountStorage: AccountStorageService,
+        @Inject('KAFKA_PRODUCER')
+        private kafkaProducer: Producer,
     ) {}
 
-    create(createOrderDto: CreateOrderDto) {
-        return this.orderModel.create({
+    async create(createOrderDto: CreateOrderDto) {
+        const order = await this.orderModel.create({
             ...createOrderDto,
             account_id: this.accountStorage.account.id,
         });
+
+        this.kafkaProducer.send({
+            topic: 'transactions',
+            messages: [{ key: 'transactions', value: JSON.stringify({ ...createOrderDto, ...order }) }],
+        });
+
+        return order;
     }
 
     findAll() {
@@ -29,7 +39,7 @@ export class OrdersService {
         });
     }
 
-    findOne(id: string) {
+    findOneUsingAccount(id: string) {
         return this.orderModel.findOne({
             where: {
                 id,
@@ -39,11 +49,18 @@ export class OrdersService {
         });
     }
 
-    update(id: string, updateOrderDto: UpdateOrderDto) {
-        return `This action updates a #${id} order`;
+    findOne(id: string) {
+        return this.orderModel.findByPk(id);
     }
 
-    remove(id: string) {
-        return `This action removes a #${id} order`;
+    async update(id: string, updateOrderDto: UpdateOrderDto) {
+        const account = this.accountStorage.account;
+        const order = account ? await this.findOneUsingAccount(id) : await this.findOne(id);
+        return order.update(updateOrderDto);
+    }
+
+    async remove(id: string) {
+        const order = await this.findOneUsingAccount(id);
+        return order.destroy();
     }
 }

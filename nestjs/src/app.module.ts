@@ -23,7 +23,7 @@ import { Account } from './accounts/entities/account.entity';
             models: [Order, Account],
             sync: {
                 alter: true,
-                force: true,
+                // force: true,
             },
         }),
         // SequelizeModule.forRoot({
