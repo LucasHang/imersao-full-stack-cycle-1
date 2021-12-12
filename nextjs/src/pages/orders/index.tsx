@@ -7,10 +7,14 @@ import { DataGrid, GridColumns } from "@mui/x-data-grid";
 import { withIronSessionSsr } from "iron-session/next";
 import { OrderStatus, OrderStatusTranslate } from "../../utils/models";
 import ironConfig from "../../utils/iron-config";
+import useSWR from "swr";
+import Router from "next/router";
 
 interface OrdersPageProps {
   orders: Array<Record<string, any>>;
 }
+
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 function OrdersPage(props: OrdersPageProps) {
   const columns: GridColumns = [
@@ -48,6 +52,20 @@ function OrdersPage(props: OrdersPageProps) {
     },
   ];
 
+  const { data, error } = useSWR(
+    `${process.env.NEXT_PUBLIC_API_HOST}/orders`,
+    fetcher,
+    {
+      fallbackData: props.orders,
+      refreshInterval: 2,
+      onError: (error) => {
+        if (error.response.status === 401 || error.response.status === 403) {
+          Router.push("/login");
+        }
+      },
+    }
+  );
+
   return (
     <div style={{ height: 400, width: "100%" }}>
       <Typography component="h1" variant="h4">
@@ -55,7 +73,7 @@ function OrdersPage(props: OrdersPageProps) {
       </Typography>
       <DataGrid
         columns={columns}
-        rows={props.orders}
+        rows={data}
         rowsPerPageOptions={[5]}
         checkboxSelection
         disableSelectionOnClick

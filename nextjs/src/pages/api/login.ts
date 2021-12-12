@@ -7,7 +7,9 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
   const { token } = req.body;
 
   try {
-    const { data } = await axios.get(`http://localhost:3000/accounts/${token}`);
+    const { data } = await axios.get(
+      `${process.env.NEST_API_HOST}/accounts/${token}`
+    );
     req.session.account = data;
     await req.session.save();
     res.status(200).json(data);
