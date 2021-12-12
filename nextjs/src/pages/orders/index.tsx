@@ -1,8 +1,10 @@
 import React from "react";
 import { GetServerSideProps } from "next";
+import Link from "next/link";
 import axios from "axios";
-import { Typography } from "@mui/material";
+import { Typography, Link as MuiLink } from "@mui/material";
 import { DataGrid, GridColumns } from "@mui/x-data-grid";
+import { OrderStatus, OrderStatusTranslate } from "../../utils/models";
 
 interface OrdersPageProps {
   orders: Array<Record<string, any>>;
@@ -14,6 +16,11 @@ function OrdersPage(props: OrdersPageProps) {
       field: "id",
       headerName: "ID",
       width: 300,
+      renderCell: (params) => (
+        <Link href={`/orders/${params.value}`} passHref>
+          <MuiLink>{params.value}</MuiLink>
+        </Link>
+      ),
     },
     {
       field: "amount",
@@ -34,15 +41,23 @@ function OrdersPage(props: OrdersPageProps) {
       field: "status",
       headerName: "Status",
       width: 110,
+      valueFormatter: (params) =>
+        OrderStatusTranslate[params.value as OrderStatus],
     },
   ];
 
   return (
-    <div>
+    <div style={{ height: 400, width: "100%" }}>
       <Typography component="h1" variant="h4">
         Minhas ordens
       </Typography>
-      <DataGrid columns={columns} rows={props.orders} />
+      <DataGrid
+        columns={columns}
+        rows={props.orders}
+        rowsPerPageOptions={[5]}
+        checkboxSelection
+        disableSelectionOnClick
+      />
     </div>
   );
 }
