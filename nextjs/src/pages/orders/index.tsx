@@ -4,7 +4,9 @@ import Link from "next/link";
 import axios from "axios";
 import { Typography, Link as MuiLink } from "@mui/material";
 import { DataGrid, GridColumns } from "@mui/x-data-grid";
+import { withIronSessionSsr } from "iron-session/next";
 import { OrderStatus, OrderStatusTranslate } from "../../utils/models";
+import ironConfig from "../../utils/iron-config";
 
 interface OrdersPageProps {
   orders: Array<Record<string, any>>;
@@ -64,16 +66,31 @@ function OrdersPage(props: OrdersPageProps) {
 
 export default OrdersPage;
 
-export const getServerSideProps: GetServerSideProps<OrdersPageProps> = async (
-  context
-) => {
-  const { data } = await axios.get("http://localhost:3000/orders", {
-    headers: { "x-token": "9thn6ts3qll" },
-  });
+export const getServerSideProps: GetServerSideProps = withIronSessionSsr(
+  async (context) => {
+    const account = context.req.session.account;
 
-  return {
-    props: {
-      orders: data,
-    },
-  };
-};
+    if (!account) {
+      return {
+        redirect: {
+          destination: "/login",
+          permanent: false,
+        },
+      };
+    }
+
+    const { data } = await axios.get(
+      `${process.env.NEXT_PUBLIC_API_HOST}/orders`,
+      {
+        headers: { cookie: context.req.headers.cookie as string },
+      }
+    );
+
+    return {
+      props: {
+        orders: data,
+      },
+    };
+  },
+  ironConfig
+);

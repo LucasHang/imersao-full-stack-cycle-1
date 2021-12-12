@@ -5,4 +5,4 @@ if [ ! -f ".env" ]; then
 fi
 
 yarn install
-yarn start:dev
+yarn dev

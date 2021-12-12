@@ -14,23 +14,27 @@ import {
 import { DataGrid, GridColumns } from "@mui/x-data-grid";
 import { OrderStatus, OrderStatusTranslate } from "../../utils/models";
 import useSWR from "swr";
-import { useRouter } from "next/router";
+import Router, { useRouter } from "next/router";
 
 interface OrdersPageProps {
   orders: Array<Record<string, any>>;
 }
 
-const fetcher = (url: string) =>
-  axios
-    .get(url, { headers: { "x-token": "9thn6ts3qll" } })
-    .then((res) => res.data);
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 function OrderShowPage(props: OrdersPageProps) {
   const router = useRouter();
 
   const { data, error } = useSWR(
-    `http://localhost:3000/orders/${router.query.id}`,
-    fetcher
+    `${process.env.NEXT_PUBLIC_API_HOST}/orders/${router.query.id}`,
+    fetcher,
+    {
+      onError: (error) => {
+        if (error.response.status === 401 || error.response.status === 403) {
+          Router.push("/login");
+        }
+      },
+    }
   );
 
   if (data) {
