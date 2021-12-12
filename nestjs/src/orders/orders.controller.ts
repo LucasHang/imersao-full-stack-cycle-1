@@ -39,9 +39,9 @@ export class OrdersController {
         order.destroy();
     }
 
-    @MessagePattern('transactions_result')
-    async consumerUpdateStatus(@Payload() message: KafkaMessage) {
-        const { id, status } = message.value as any;
-        await this.ordersService.update(id, { status });
-    }
+    // @MessagePattern('transactions_result')
+    // async consumerUpdateStatus(@Payload() message: KafkaMessage) {
+    //     const { id, status } = message.value as any;
+    //     await this.ordersService.update(id, { status });
+    // }
 }

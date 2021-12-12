@@ -13,9 +13,9 @@ export class OrdersService {
         @InjectModel(Order)
         private orderModel: typeof Order,
         private accountStorage: AccountStorageService,
-        @Inject('KAFKA_PRODUCER')
-        private kafkaProducer: Producer,
-    ) {}
+    ) // @Inject('KAFKA_PRODUCER')
+    // private kafkaProducer: Producer,
+    {}
 
     async create(createOrderDto: CreateOrderDto) {
         const order = await this.orderModel.create({
@@ -23,10 +23,10 @@ export class OrdersService {
             account_id: this.accountStorage.account.id,
         });
 
-        this.kafkaProducer.send({
-            topic: 'transactions',
-            messages: [{ key: 'transactions', value: JSON.stringify({ ...createOrderDto, ...order }) }],
-        });
+        // this.kafkaProducer.send({
+        //     topic: 'transactions',
+        //     messages: [{ key: 'transactions', value: JSON.stringify({ ...createOrderDto, ...order }) }],
+        // });
 
         return order;
     }
